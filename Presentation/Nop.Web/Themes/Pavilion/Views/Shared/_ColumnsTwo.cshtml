@@ -1,0 +1,141 @@
+﻿@{
+    Layout = "~/Views/Shared/_Root.cshtml";
+
+    var controllerName = Url.RequestContext.RouteData.Values["controller"].ToString();
+    var actionName = Url.RequestContext.RouteData.Values["action"].ToString();
+
+    var isCatalogController = controllerName.Equals("catalog", StringComparison.InvariantCultureIgnoreCase);
+    var isProductController = controllerName.Equals("product", StringComparison.InvariantCultureIgnoreCase);
+
+    //current category ID
+    int currentCategoryId = 0;
+    if (isCatalogController && actionName.Equals("category", StringComparison.InvariantCultureIgnoreCase))
+    {
+        currentCategoryId = Convert.ToInt32(Url.RequestContext.RouteData.Values["categoryId"].ToString());
+    }
+
+    //current manufacturer ID
+    int currentManufacturerId = 0;
+    if (isCatalogController && actionName.Equals("manufacturer", StringComparison.InvariantCultureIgnoreCase))
+    {
+        currentManufacturerId = Convert.ToInt32(Url.RequestContext.RouteData.Values["manufacturerId"].ToString());
+    }
+
+    //current product ID
+    int currentProductId = 0;
+    if (isProductController && actionName.Equals("productdetails", StringComparison.InvariantCultureIgnoreCase))
+    {
+        currentProductId = Convert.ToInt32(Url.RequestContext.RouteData.Values["productId"].ToString());
+    }
+
+    var isAccountPage = controllerName.Equals("customer", StringComparison.InvariantCultureIgnoreCase) ||
+        controllerName.Equals("helpdesk", StringComparison.InvariantCultureIgnoreCase) ||
+        (controllerName.Equals("backinstocksubscription", StringComparison.InvariantCultureIgnoreCase) &&
+                        actionName.Equals("customersubscriptions", StringComparison.InvariantCultureIgnoreCase)) ||
+        (controllerName.Equals("order", StringComparison.InvariantCultureIgnoreCase) &&
+                        actionName.Equals("customerorders", StringComparison.InvariantCultureIgnoreCase)) ||
+        (controllerName.Equals("order", StringComparison.InvariantCultureIgnoreCase) &&
+                        actionName.Equals("customerrewardpoints", StringComparison.InvariantCultureIgnoreCase)) ||
+        (controllerName.Equals("boards", StringComparison.InvariantCultureIgnoreCase) &&
+                        actionName.Equals("customerforumsubscriptions", StringComparison.InvariantCultureIgnoreCase)) ||
+        (controllerName.Equals("returnrequest", StringComparison.InvariantCultureIgnoreCase) &&
+                        actionName.Equals("customerreturnrequests", StringComparison.InvariantCultureIgnoreCase)) ||
+        (controllerName.Equals("product", StringComparison.InvariantCultureIgnoreCase) &&
+                        actionName.Equals("CustomerProductReviews", StringComparison.InvariantCultureIgnoreCase)) ||
+        (controllerName.Equals("vendor", StringComparison.InvariantCultureIgnoreCase) &&
+                        actionName.Equals("info", StringComparison.InvariantCultureIgnoreCase));
+}
+
+@if (IsSectionDefined("Breadcrumb"))
+{
+    @section Breadcrumb {
+        @RenderSection("Breadcrumb")
+    } 
+}
+
+@if (!isAccountPage)
+{
+    <div class="center-2">
+        @Html.Widget("main_column_before")
+        @RenderBody()
+        @Html.Widget("main_column_after")
+    </div>
+}
+
+<div class="side-2">
+    @if (IsSectionDefined("left"))
+    {
+        @RenderSection("left")
+    }
+    else
+    {
+        var isManufacturerPage = currentManufacturerId != 0 || (isCatalogController && actionName.Equals("ManufacturerAll", StringComparison.InvariantCultureIgnoreCase));
+        var isVendorPage = isCatalogController && (actionName.Equals("Vendor", StringComparison.InvariantCultureIgnoreCase) || actionName.Equals("VendorAll", StringComparison.InvariantCultureIgnoreCase));
+        var isCategoryPage = isCatalogController && (actionName.Equals("Category", StringComparison.InvariantCultureIgnoreCase));
+        var isPopularTagsPage = isCatalogController && (actionName.Equals("ProductTagsAll", StringComparison.InvariantCultureIgnoreCase) || actionName.Equals("ProductsByTag", StringComparison.InvariantCultureIgnoreCase));
+        var isRecentlyViewedProductsPage = isProductController && actionName.Equals("RecentlyViewedProducts", StringComparison.InvariantCultureIgnoreCase);
+
+        if (IsSectionDefined("AsidePageTitle"))
+        {
+            @RenderSection("AsidePageTitle")
+        }
+        
+        @Html.Widget("left_side_column_before")
+
+        if (isCategoryPage)
+        {
+            @Html.Action("CategoryNavigation", "Catalog", new {currentCategoryId = currentCategoryId, currentProductId = currentProductId})
+            @Html.Widget("left_side_column_after_category_navigation")
+
+            @Html.Action("ManufacturerNavigation", "Catalog", new {currentManufacturerId = currentManufacturerId})
+
+            @Html.Action("VendorNavigation", "Catalog")
+        }
+        else if (isManufacturerPage)
+        {
+            @Html.Action("ManufacturerNavigation", "Catalog", new { currentManufacturerId = currentManufacturerId })
+
+            @Html.Widget("left_side_column_after_category_navigation")
+
+            @Html.Action("VendorNavigation", "Catalog")
+        }
+        else if (isVendorPage)
+        {
+            @Html.Action("VendorNavigation", "Catalog")
+
+            @Html.Widget("left_side_column_after_category_navigation")
+
+            @Html.Action("ManufacturerNavigation", "Catalog", new { currentManufacturerId = currentManufacturerId })
+        }
+        else
+        {
+            @Html.Widget("left_side_column_after_category_navigation")
+
+            @Html.Action("ManufacturerNavigation", "Catalog", new {currentManufacturerId = currentManufacturerId})
+
+            @Html.Action("VendorNavigation", "Catalog")
+        }
+
+        if (!isRecentlyViewedProductsPage)
+        {
+            @Html.Action("RecentlyViewedProductsBlock", "Product", new {productThumbPictureSize = 64})
+        }
+
+        if (!isPopularTagsPage)
+        {
+            @Html.Action("PopularProductTags", "Catalog")
+        }
+
+        @Html.Action("PollBlock", "Poll", new {systemKeyword = "LeftColumnPoll"})
+        @Html.Widget("left_side_column_after")
+    }
+</div>
+
+@if (isAccountPage)
+{
+    <div class="center-2">
+        @Html.Widget("main_column_before")
+        @RenderBody()
+        @Html.Widget("main_column_after")
+    </div>
+}

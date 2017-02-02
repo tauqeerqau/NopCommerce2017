@@ -1,0 +1,83 @@
+﻿@using Nop.Web.Models.Catalog
+
+@model TopMenuModel
+
+@{
+    var isRtl = this.ShouldUseRtlTheme();
+}
+
+@helper RenderCategoryLine(CategorySimpleModel category, bool isTopLevel = false)
+{
+    <li @if (isTopLevel) { <text> class="root-category-items" </text> }>
+        @if (category.SubCategories.Count > 0)
+        {
+            <a class="with-subcategories" href="@Url.RouteUrl("Category", new { SeName = category.SeName })">@category.Name</a>
+            <div class="plus-button"></div>
+            <div class="sublist-wrap">
+                <ul class="sublist">
+                    <li class="back-button">
+                        <span>@T("SevenSpikes.Themes.Common.BackSublist")</span>
+                    </li>
+                    @foreach (var subCategory in category.SubCategories)
+                    {
+                        @RenderCategoryLine(subCategory)
+                    }
+                </ul>
+            </div>
+        }
+        else
+        {
+            if (category.NumberOfProducts.HasValue)
+            {
+                <a href="@Url.RouteUrl("Category", new { SeName = category.SeName })">@category.Name @T("Categories.TotalProducts", category.NumberOfProducts.Value)</a>
+            }
+            else
+            {
+                <a href="@Url.RouteUrl("Category", new { SeName = category.SeName })">@category.Name</a>
+            }
+        }
+    </li>
+}
+
+<input type="hidden" value="@isRtl.ToString().ToLowerInvariant()" id="isRtlEnabled" />
+
+<ul class="top-menu">
+    @Html.Widget("header_menu_before")
+
+    @{
+        var topMenuCategories = Model.Categories.Where(x => x.IncludeInTopMenu).ToList();
+
+        if (Model.Categories.Count > 0)
+        {
+            foreach (var category in topMenuCategories)
+            {
+                @RenderCategoryLine(category, true)
+            }
+        }
+
+        foreach (var topic in Model.Topics)
+        {
+            <li><a href="@Url.RouteUrl("Topic", new {SeName = topic.SeName})">@topic.Name</a></li>
+        }
+
+        // No categories or topics to display? In this case let's display some default menu items (should we?).
+        <li><a href="@Url.RouteUrl("HomePage")">@T("HomePage")</a></li>
+        if (Model.NewProductsEnabled)
+        {
+            <li><a href="@Url.RouteUrl("NewProducts")">@T("Products.NewProducts")</a></li>
+        }
+        <li><a href="@Url.RouteUrl("ProductSearch")">@T("Search")</a> </li>
+        @*<li><a href="@Url.RouteUrl("CustomerInfo")">@T("Account.MyAccount")</a></li>*@ @* no need to display my account because it is already present as a separate menu in header upper *@ 
+        if (Model.BlogEnabled)
+        {
+            <li><a href="@Url.RouteUrl("Blog")">@T("Blog")</a></li>
+        }
+        if (Model.ForumEnabled)
+        {
+            <li><a href="@Url.RouteUrl("Boards")">@T("Forum.Forums")</a></li>
+        }
+        <li><a href="@Url.RouteUrl("ContactUs")">@T("ContactUs")</a></li>
+    }
+
+    @Html.Widget("header_menu_after")
+</ul>

@@ -1,0 +1,92 @@
+﻿@using Nop.Web.Models.Catalog
+
+@model CategoryNavigationModel
+
+@functions{
+
+    public bool DoesCurrentCategoryHasSubcategories(IList<CategorySimpleModel> categories)
+    {
+        foreach (var category in categories)
+        {
+            if (category.Id == Model.CurrentCategoryId && category.SubCategories.Count > 0)
+            {
+                return true;
+            }
+
+            if (DoesCurrentCategoryHasSubcategories(category.SubCategories))
+            {
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+}
+
+@helper RenderCategoryLineOnCategoryPage(CategorySimpleModel category, bool isInCurrentCategory = false)
+{
+    if (category.Id == Model.CurrentCategoryId)
+    {
+        foreach (var subCategory in category.SubCategories)
+        {
+            @RenderCategoryLineOnCategoryPage(subCategory, true)
+        }
+    }
+    else if (isInCurrentCategory)
+    {
+        <li>
+            <a href="@Url.RouteUrl("Category", new {SeName = category.SeName})">
+                @category.Name
+                @if (category.NumberOfProducts.HasValue)
+                {
+                    <text> </text>
+                    @T("Categories.TotalProducts", category.NumberOfProducts.Value)
+                }
+            </a>
+
+            @if (category.SubCategories.Count > 0)
+            {
+                <ul class="sublist">
+                    @foreach (var subCategory in category.SubCategories)
+                    {
+                        @RenderCategoryLineOnCategoryPage(subCategory, true)
+                    }
+                </ul>
+            }
+        </li>
+    }
+    else
+    {
+        foreach (var subCategory in category.SubCategories)
+        {
+            @RenderCategoryLineOnCategoryPage(subCategory)
+        }
+    }
+}
+
+@if (Model.Categories.Count > 0)
+{
+    var controllerName = System.Web.HttpContext.Current.Request.RequestContext.RouteData.GetRequiredString("controller");
+    var actionName = System.Web.HttpContext.Current.Request.RequestContext.RouteData.GetRequiredString("action");
+
+    var isCategoryPage = controllerName.Equals("catalog", StringComparison.InvariantCultureIgnoreCase) &&
+                        actionName.Equals("category", StringComparison.InvariantCultureIgnoreCase);
+
+    if (isCategoryPage && DoesCurrentCategoryHasSubcategories(Model.Categories))
+    {
+        <div class="block block-category-navigation">
+            <div class="title subcategories-title">
+                <strong>@T("SevenSpikes.Themes.Pavilion.Catalog.Subcategories")</strong>
+            </div>
+            <div class="listbox category-page-navigation">
+                <ul class="list">
+                    @foreach (var category in Model.Categories)
+                    {
+                        @RenderCategoryLineOnCategoryPage(category)
+                    }
+                </ul>
+            </div>
+        </div>
+    }
+}

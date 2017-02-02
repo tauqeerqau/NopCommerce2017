@@ -1,0 +1,35 @@
+﻿@{
+    Layout = "~/Views/Shared/_ColumnsOne.cshtml";
+
+    Html.AppendCssFileParts("~/Themes/Pavilion/Content/css/owl.carousel.css");
+    Html.AddScriptParts("~/Themes/Pavilion/Content/scripts/owl.carousel.min.js");
+	
+    //page class
+    Html.AppendPageCssClassParts("html-home-page");
+}
+
+<div class="page home-page">
+    <div class="page-body">
+        @Html.Widget("home_page_top")
+        @Html.Action("TopicBlock", "Topic", new { systemName = "HomePageText" })
+        @Html.Widget("home_page_before_categories")
+        @Html.Action("HomepageCategories", "Catalog")
+        @Html.Widget("home_page_before_products")
+        @Html.Widget("home_page_before_best_sellers")
+
+        <div class="homepage-middle-wrapper">
+            @Html.Action("HomepageBestSellers", "Product")
+            @Html.Widget("pavilion_home_page_richblog")
+        </div>
+
+        @Html.Widget("home_page_before_news")
+        @Html.Action("HomePageNews", "News")
+        @Html.Widget("home_page_before_poll")
+        @Html.Action("HomePagePolls", "Poll")
+
+        <div class="homepage-bottom-wrapper">
+            @Html.Widget("home_page_bottom")
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,148 @@
+﻿@using Nop.Core
+@using Nop.Core.Infrastructure
+@using Nop.Services.Configuration
+@using Nop.Services.Localization
+@using Nop.Web.Framework.Themes
+@using System.Web.Mvc
+
+@{
+    var controllerName = HttpContext.Current.Request.RequestContext.RouteData.GetRequiredString("controller");
+    var actionName = HttpContext.Current.Request.RequestContext.RouteData.GetRequiredString("action");
+    var isHomePage = controllerName.Equals("home", StringComparison.InvariantCultureIgnoreCase) &&
+                        actionName.Equals("index", StringComparison.InvariantCultureIgnoreCase);
+
+    var currentStore = EngineContext.Current.Resolve<IStoreContext>().CurrentStore;
+    int storeId = currentStore.Id;
+    var settingsService = EngineContext.Current.Resolve<ISettingService>();
+    bool isHomeSliderFullWidth = settingsService.GetSettingByKey("pavilionthemesettings.ishomepagemainsliderfullwidth", false, storeId, true);
+    bool stickyCategoryMenuFlyout = settingsService.GetSettingByKey("pavilionthemesettings.StickyCategoryMenuFlyout", true, storeId, true);
+    bool showCategoriesInSideMenu = settingsService.GetSettingByKey("pavilionthemesettings.ShowCategoriesInSideMenu", true, storeId, true);
+
+    var homePageMainSlider = new MvcHtmlString("");
+
+    if (isHomePage)
+    {
+        homePageMainSlider = Html.Widget("home_page_main_slider");
+    }
+}
+
+<div class="header">
+    @Html.Widget("header")
+
+    <div class="header-upper">
+        <div class="center">
+            @Html.Action("AdminHeaderLinks", "Common")
+            @{
+                var taxTypeSelectorHtml = @Html.Action("TaxTypeSelector", "Common");
+                var currencySelectorHtml = @Html.Action("CurrencySelector", "Common");
+                var languageSelectorHtml = @Html.Action("LanguageSelector", "Common");
+                
+                MvcHtmlString headerSelectorWidgetHtml = @Html.Widget("header_selectors");
+                // it is better to trim the string and then check for null or empty because the MvcHtmlString.IsNullOrEmpty fail if the variable contains empty spaces
+                var headerSelectorWidgetHtmlString = headerSelectorWidgetHtml.ToHtmlString().Trim();
+            }
+
+            @if (!MvcHtmlString.IsNullOrEmpty(taxTypeSelectorHtml) ||
+                 !MvcHtmlString.IsNullOrEmpty(currencySelectorHtml) ||
+                 !MvcHtmlString.IsNullOrEmpty(languageSelectorHtml) ||
+                 !String.IsNullOrEmpty(headerSelectorWidgetHtmlString))
+            {
+                <div class="header-selectors-wrapper">
+                    <label>@T("SevenSpikes.Themes.Pavilion.Header.Preferences")</label>
+                    <div class="header-selectors">
+                        @taxTypeSelectorHtml
+                        @currencySelectorHtml
+                        @languageSelectorHtml
+                        @headerSelectorWidgetHtml
+                    </div>
+                </div>
+                <div class="header-selector-widget" style="display: none;">@headerSelectorWidgetHtml</div>
+             
+            }
+            <div class="header-links-wrapper">
+                <label>@T("SevenSpikes.Themes.Pavilion.Header.MyAccount")</label>
+                @Html.Action("HeaderLinks", "Common")
+            </div>
+        </div>
+    </div>
+
+    <div class="header-middle">
+        <div class="center">
+            <div class="header-logo">
+                @Html.Action("Logo", "Common")
+            </div>
+            <div class="header-menu-parent">
+                <div class="header-menu @if (showCategoriesInSideMenu){<text>categories-in-side-panel</text>}">
+                    <div class="close-menu">
+                        <span>@T("SevenSpikes.Themes.Common.CloseMenu")</span>
+                    </div>
+                    @{
+                        var menuHtml = Html.Widget("theme_header_menu");
+                    }
+                    @if (!MvcHtmlString.IsNullOrEmpty(menuHtml))
+                    {
+                        @menuHtml
+                    }
+                    else
+                    {
+                        @Html.Action("TopMenu", "Catalog")
+                    }
+                </div>
+            </div>
+            @Html.Action("FlyoutShoppingCart", "ShoppingCart")
+        </div>
+    </div>
+    
+    <div class="header-lower">
+        <div class="center">
+            @if (showCategoriesInSideMenu)
+            {
+                <span class="category-navigation-title">@T("SevenSpikes.Themes.Pavilion.Header.AllCategories")</span>
+
+                if (!isHomePage || isHomeSliderFullWidth)
+                {
+                    <div class="category-navigation-list-wrapper">
+                        <ul class="category-navigation-list @if (stickyCategoryMenuFlyout){<text>sticky-flyout</text>}"></ul>
+                    </div>
+                }
+            }
+            
+            <div class="search-box store-search-box @if (!showCategoriesInSideMenu){<text>full-width</text>}">
+                @Html.Action("SearchBox", "Catalog")
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@if (isHomePage)
+{
+    var homePageSliderCss = isHomeSliderFullWidth ? "slider-fullwidth" : "slider-right-column";
+
+    <div class="two-columns-area @homePageSliderCss">
+        @if (isHomeSliderFullWidth)
+        {
+            @homePageMainSlider
+        }
+
+        <div class="center">
+            <div class="two-colums-area-left">
+                @if (showCategoriesInSideMenu && !isHomeSliderFullWidth)
+                {
+                    <div class="category-navigation-list-wrapper">
+                        <ul class="category-navigation-list @if (stickyCategoryMenuFlyout){<text>sticky-flyout</text>}"></ul>
+                    </div>
+                }
+
+                @Html.Action("HomepageProducts", "Product")
+            </div>
+            <div class="two-colums-area-right">
+                @if (!isHomeSliderFullWidth)
+                {
+                    @homePageMainSlider
+                }
+                @Html.Widget("homepage_slider_after")
+            </div>
+        </div>
+    </div>
+}

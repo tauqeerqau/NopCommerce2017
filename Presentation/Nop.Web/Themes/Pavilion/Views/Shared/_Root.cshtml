@@ -1,0 +1,73 @@
+﻿@using Nop.Core
+@using Nop.Core.Infrastructure
+@using Nop.Services.Configuration
+
+@{
+    Layout = "~/Views/Shared/_Root.Head.cshtml";
+
+    var controllerName = HttpContext.Current.Request.RequestContext.RouteData.GetRequiredString("controller");
+    var actionName = HttpContext.Current.Request.RequestContext.RouteData.GetRequiredString("action");
+    var isHomePage = controllerName.Equals("home", StringComparison.InvariantCultureIgnoreCase) && actionName.Equals("index", StringComparison.InvariantCultureIgnoreCase);
+
+    var storeId = EngineContext.Current.Resolve<IStoreContext>().CurrentStore.Id;
+    var settingsService = EngineContext.Current.Resolve<ISettingService>();
+    bool isLogoStickyOnMobileDevice = settingsService.GetSettingByKey("pavilionthemesettings.islogostickyonmobiledevice", false, storeId, true);
+    string stickyLogoClass = isLogoStickyOnMobileDevice ? "mobile-sticky-logo" : string.Empty;
+}
+
+@Html.Widget("body_start_html_tag_after")
+@Html.Partial("_Notifications")
+@Html.Action("JavaScriptDisabledWarning", "Common")
+@Html.Partial("OldInternetExplorerWarning")
+
+<div class="master-wrapper-page @stickyLogoClass">
+    @Html.Partial("Header")
+    <script type="text/javascript">
+        AjaxCart.init(false, '.header-links .cart-qty', '.header-links .wishlist-qty', '#flyout-cart');
+    </script>
+    <div class="overlayOffCanvas"></div>
+    <div class="responsive-nav-wrapper-parent">
+        <div class="responsive-nav-wrapper">
+            <div class="menu-title">
+                <span>@T("SevenSpikes.Themes.Common.MenuTitle")</span>
+            </div>
+            <div class="shopping-cart-link">
+                <span>@T("ShoppingCart")</span>
+            </div>
+            <div class="filters-button">
+                <span>@T("SevenSpikes.Themes.Common.Filters")</span>
+            </div>
+            <div class="personal-button" id="header-links-opener">
+                <span>@T("SevenSpikes.Themes.Common.Personal")</span>
+            </div>
+            <div class="preferences-button" id="header-selectors-opener">
+                <span>@T("SevenSpikes.Themes.Pavilion.Header.Preferences")</span>
+            </div>
+            <div class="search-wrap">
+                <span>@T("Search")</span>
+            </div>
+        </div>
+    </div>
+    <div class="master-wrapper-content">
+        @Html.Widget("content_before")
+        @Html.Widget("pavilion_color_squares")
+
+        @if (IsSectionDefined("Breadcrumb"))
+        {
+            @RenderSection("Breadcrumb")
+        }
+        <div class="master-column-wrapper">
+            @RenderBody()
+        </div>
+        @Html.Widget("content_after")
+    </div>
+    @if (isHomePage)
+    {
+        @Html.Widget("homepage_content_after")
+    }
+
+    @Html.Action("Footer", "Common")
+</div>
+
+@Html.Action("EuCookieLaw", "Common")
+@Html.Widget("body_end_html_tag_before")
