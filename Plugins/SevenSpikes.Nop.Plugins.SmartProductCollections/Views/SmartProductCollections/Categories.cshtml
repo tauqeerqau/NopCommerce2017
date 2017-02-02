@@ -1,0 +1,30 @@
+﻿@using SevenSpikes.Nop.Plugins.SmartProductCollections.Models.Public
+
+@model CategoryCollectionsModel
+
+@{
+    Layout = "";
+
+    Html.AddCssFileParts("~/Plugins/SevenSpikes.Nop.Plugins.SmartProductCollections/Themes/" + Model.Theme + "/Content/SmartProductCollections.css");
+    
+    var supportRtl = ShouldUseRtlTheme();
+    if (supportRtl)
+    {
+        Html.AddCssFileParts("~/Plugins/SevenSpikes.Nop.Plugins.SmartProductCollections/Themes/" + Model.Theme + "/Content/SmartProductCollections.rtl.css");
+    }
+
+    Html.AddScriptParts("~/Plugins/SevenSpikes.Nop.Plugins.SmartProductCollections/Scripts/Products.min.js");
+}
+
+@foreach (var categoryGroup in Model.CategoryGroups)
+{
+    <div class="spc spc-categories @Model.Settings.CategoryImagesOrientation"
+         notloaded
+         data-categorygroupid="@categoryGroup.Id"
+         data-getcategorygroupinfourl="@Url.Action("PrepareCategoryGroup", "SmartProductCollections")"
+         data-getItemProductsUrl="@Url.Action("GetProductsForItem", "SmartProductCollections")">
+        <div class="loading-overlay">
+            <span>@T("SevenSpikes.SmartProductCollections.Public.Loading")</span>
+        </div>
+    </div>
+}

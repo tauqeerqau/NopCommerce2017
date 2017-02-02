@@ -1,0 +1,8 @@
+﻿Group: 7Spikes
+FriendlyName: Nop Smart Product Collections
+SystemName: SevenSpikes.Nop.Plugins.SmartProductCollections
+Version: 3.80
+SupportedVersions: 3.80
+Author: Seven Spikes
+DisplayOrder: 1
+FileName: SevenSpikes.Nop.Plugins.SmartProductCollections.dll
