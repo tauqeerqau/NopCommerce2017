@@ -1,2 +1,0 @@
-DataProvider: sqlserver
-DataConnectionString: Data Source=.\SqlExpress;Initial Catalog=Nop2017;Integrated Security=True;Persist Security Info=False
